@@ -1,56 +1,167 @@
-{% extends 'dash.html'%}
-{% block title%} Dashboard | Mutual funds {% endblock %}
-{% block content %}
+{% extends 'dashboard/layout.html' %}
+{% block title %}Mutual Funds — Fulusi{% endblock %}
+{% block page_title %}Mutual Funds{% endblock %}
 
-<div class="row d-flex justify-content-center  mx-3">
-    <div class="col col-11 mb-2 ">
-        <form method="POST">
-        <div class="row">
-            
-                <div class="col-8  ml-4">
-                    <select class="form-select" aria-label="select a mutual fund" name="fund_name">
-                        <option selected>Choose a Mutual Fund | Chagua Mfuko wa Uwekezaji</option>
-                        <option value="uttamis_fund">UTT AMIS</option>
-                        <option value="faida_fund">FAIDA FUND</option>
-                      </select>
-                </div>
-            <div class="col-4 ">
-                <button type="submit" class="btn btn-primary w-100">Search | Tafuta <i class="bi bi-search"></i> </button>
-            </div>
-            
-        </div>
+{% block content %}
+<div class="max-w-5xl">
+
+  <div class="mb-6">
+    <h2 class="text-xl font-bold text-slate-800">Mutual Fund Unit Prices</h2>
+    <p class="text-sm text-slate-500 mt-1">
+      Daily NAV (Net Asset Value) prices for Tanzanian unit trusts.
+    </p>
+  </div>
+
+  <!-- Fund selector form -->
+  <div class="bg-white border border-slate-100 rounded-2xl p-5 mb-6 shadow-sm">
+    <form method="POST" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1">
+        <label for="fund_name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+          Select Fund
+        </label>
+        <select id="fund_name" name="fund_name"
+                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700
+                       bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500
+                       transition appearance-none cursor-pointer">
+          <option value="" disabled {% if not selected_fund %}selected{% endif %}>Choose a mutual fund…</option>
+          {% for value, label in fund_options %}
+          <option value="{{ value }}" {% if selected_fund == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:self-end">
+        <button type="submit"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-violet-600 text-white
+                       font-semibold px-6 py-2.5 rounded-xl hover:bg-violet-700 transition-colors text-sm shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          Load Fund Data
+        </button>
+      </div>
     </form>
+  </div>
+
+  {% if error %}
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3 mb-6">
+    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <p class="font-medium text-red-700 text-sm">Could not load fund data</p>
+      <p class="text-red-600 text-xs mt-0.5">{{ error }}</p>
     </div>
-</div>
-<div class="row d-flex justify-content-center  mx-4 mt-5">
-    <div class="col col-11  mb-2 rounded shadow-sm border border-tertiary-secondary">
-   
-        <table class="table table-striped table-bordered mt-4">
-            <caption>Live mutual fund data</caption>
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Fund Name</th>
-                    <th scope="col">Net Asset Value (Tsh)</th>
-                    <th scope="col">Outstanding Number of Units (Tsh)</th>
-                    <th scope="col">Net Asset Value Per Unit (Tsh)</th>
-                    <th scope="col">Sale Price Per Unit (Tsh)</th>
-                    <th scope="col">Sale Price Per Unit (Tsh)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for fund in fund_data %}
-                <tr>
-                    <th scope="row">{{ loop.index }}</th>
-                    <td>{{ fund.fund_name }}</td>
-                    <td>{{ fund.net_asset_value_tzs }}</td>
-                    <td>{{ fund.outstanding_number_of_units }}</td>
-                    <td>{{ fund.nav_per_unit_tzs }}</td>
-                    <td>{{ fund.sales_price_per_unit_tzs }}</td>
-                    <td>{{ fund.repurchase_price_per_unit_tzs }}</td>
-                </tr>
-                {% endfor %}
-        </table>
+  </div>
+  {% endif %}
+
+  {% if fund_data %}
+
+  <!-- Summary cards -->
+  {% if fund_data | length > 0 %}
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    {% set fund = fund_data[0] %}
+    {% if fund.nav_per_unit_tzs %}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">NAV Per Unit</p>
+      <p class="text-2xl font-bold text-slate-800 font-mono">
+        {{ '{:,.4f}'.format(fund.nav_per_unit_tzs | float) }}
+      </p>
+      <p class="text-xs text-slate-500 mt-0.5">TZS</p>
     </div>
+    {% endif %}
+    {% if fund.sales_price_per_unit_tzs %}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Sale Price / Unit</p>
+      <p class="text-2xl font-bold text-emerald-600 font-mono">
+        {{ '{:,.4f}'.format(fund.sales_price_per_unit_tzs | float) }}
+      </p>
+      <p class="text-xs text-slate-500 mt-0.5">TZS — what you pay to buy units</p>
+    </div>
+    {% endif %}
+    {% if fund.repurchase_price_per_unit_tzs %}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Repurchase Price / Unit</p>
+      <p class="text-2xl font-bold text-blue-600 font-mono">
+        {{ '{:,.4f}'.format(fund.repurchase_price_per_unit_tzs | float) }}
+      </p>
+      <p class="text-xs text-slate-500 mt-0.5">TZS — what you receive when selling</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Full table -->
+  <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold text-slate-800">
+          {{ selected_fund | replace('_', ' ') | upper if selected_fund else 'Fund Data' }}
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">Latest NAV data · All values in TZS</p>
+      </div>
+      <span class="text-xs bg-violet-50 text-violet-700 border border-violet-200 px-3 py-1 rounded-full font-medium">
+        {{ fund_data | length }} records
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <th class="px-5 py-3 text-left">#</th>
+            <th class="px-5 py-3 text-left">Fund Name</th>
+            <th class="px-5 py-3 text-right">Net Asset Value (TZS)</th>
+            <th class="px-5 py-3 text-right">Outstanding Units</th>
+            <th class="px-5 py-3 text-right">NAV / Unit (TZS)</th>
+            <th class="px-5 py-3 text-right">Sale Price / Unit</th>
+            <th class="px-5 py-3 text-right">Repurchase / Unit</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for fund in fund_data %}
+          <tr class="hover:bg-slate-50/60 transition-colors">
+            <td class="px-5 py-3.5 text-slate-400 text-xs">{{ loop.index }}</td>
+            <td class="px-5 py-3.5 font-medium text-slate-800">{{ fund.fund_name }}</td>
+            <td class="px-5 py-3.5 text-right font-mono text-slate-600 text-xs">
+              {% if fund.net_asset_value_tzs %}
+              {{ '{:,.0f}'.format(fund.net_asset_value_tzs | float) }}
+              {% else %}—{% endif %}
+            </td>
+            <td class="px-5 py-3.5 text-right font-mono text-slate-600 text-xs">
+              {% if fund.outstanding_number_of_units %}
+              {{ '{:,.0f}'.format(fund.outstanding_number_of_units | float) }}
+              {% else %}—{% endif %}
+            </td>
+            <td class="px-5 py-3.5 text-right font-mono font-semibold text-slate-700">
+              {{ '{:,.4f}'.format(fund.nav_per_unit_tzs | float) if fund.nav_per_unit_tzs else '—' }}
+            </td>
+            <td class="px-5 py-3.5 text-right font-mono font-semibold text-emerald-600">
+              {{ '{:,.4f}'.format(fund.sales_price_per_unit_tzs | float) if fund.sales_price_per_unit_tzs else '—' }}
+            </td>
+            <td class="px-5 py-3.5 text-right font-mono font-semibold text-blue-600">
+              {{ '{:,.4f}'.format(fund.repurchase_price_per_unit_tzs | float) if fund.repurchase_price_per_unit_tzs else '—' }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% elif not error %}
+  <div class="bg-white border border-dashed border-slate-200 rounded-2xl py-16 text-center">
+    <div class="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <svg class="w-7 h-7 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+      </svg>
+    </div>
+    <p class="font-semibold text-slate-600">Select a fund to view NAV data</p>
+    <p class="text-sm text-slate-400 mt-1">Choose UTTAMIS or Faida Fund from the dropdown above.</p>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

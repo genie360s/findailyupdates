@@ -1,0 +1,143 @@
+{% extends 'dashboard/layout.html' %}
+{% block title %}Best Forex Rates — Fulusi{% endblock %}
+{% block page_title %}Best Forex Rates{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+
+  <div class="mb-6">
+    <h2 class="text-xl font-bold text-slate-800">Best Bank Forex Rates</h2>
+    <p class="text-sm text-slate-500 mt-1">
+      Our analysis engine identifies which bank offers the highest buying rate and the lowest selling
+      rate for each currency, saving you time and money.
+    </p>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex flex-wrap gap-4 mb-6">
+    <div class="flex items-center gap-2 text-sm text-slate-600">
+      <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+      <span><strong>Best Buy Rate</strong> — Bank pays you the most when buying your foreign currency</span>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-slate-600">
+      <span class="w-3 h-3 rounded-full bg-red-400"></span>
+      <span><strong>Best Sell Rate</strong> — Bank charges you the least when you need to buy foreign currency</span>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3">
+    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <p class="font-medium text-red-700 text-sm">Could not load analysis data</p>
+      <p class="text-red-600 text-xs mt-0.5">{{ error }}</p>
+      <p class="text-red-500 text-xs mt-1">Ensure the API server is running on port 5000.</p>
+    </div>
+  </div>
+
+  {% elif best_banks_forex_rates %}
+  <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+      <div>
+        <h3 class="font-semibold text-slate-800">Cross-Bank Rate Comparison</h3>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Computed from latest data across all tracked banks
+        </p>
+      </div>
+      <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
+        {{ best_banks_forex_rates | length }} currencies
+      </span>
+    </div>
+
+    <!-- Mobile card view (visible on small screens) -->
+    <div class="sm:hidden divide-y divide-slate-100">
+      {% for row in best_banks_forex_rates %}
+      <div class="px-5 py-4">
+        <p class="font-bold text-slate-800 uppercase text-sm mb-3">{{ row.currency }}</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-emerald-50 rounded-xl p-3">
+            <p class="text-xs text-emerald-600 font-semibold mb-1">Best Buy Rate</p>
+            <p class="font-mono font-bold text-emerald-700">
+              {{ '{:,.2f}'.format(row.best_buying_price) if row.best_buying_price else '—' }}
+            </p>
+            <p class="text-xs text-slate-500 mt-1 truncate">
+              {{ row.bank_with_best_buying_price | replace('_', ' ') | title if row.bank_with_best_buying_price else '—' }}
+            </p>
+          </div>
+          <div class="bg-red-50 rounded-xl p-3">
+            <p class="text-xs text-red-600 font-semibold mb-1">Best Sell Rate</p>
+            <p class="font-mono font-bold text-red-600">
+              {{ '{:,.2f}'.format(row.best_selling_price) if row.best_selling_price else '—' }}
+            </p>
+            <p class="text-xs text-slate-500 mt-1 truncate">
+              {{ row.bank_with_best_selling_price | replace('_', ' ') | title if row.bank_with_best_selling_price else '—' }}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Desktop table (hidden on small screens) -->
+    <div class="hidden sm:block overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <th class="px-6 py-3 text-left">Currency</th>
+            <th class="px-6 py-3 text-right">Best Buy Rate (TZS)</th>
+            <th class="px-6 py-3 text-left">Bank</th>
+            <th class="px-6 py-3 text-right">Best Sell Rate (TZS)</th>
+            <th class="px-6 py-3 text-left">Bank</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for row in best_banks_forex_rates %}
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4">
+              <span class="font-bold text-slate-800 uppercase text-base">{{ row.currency }}</span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <span class="font-mono font-bold text-emerald-600 text-base">
+                {{ '{:,.2f}'.format(row.best_buying_price) if row.best_buying_price else '—' }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full">
+                {{ row.bank_with_best_buying_price | replace('_', ' ') | title if row.bank_with_best_buying_price else '—' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <span class="font-mono font-bold text-red-500 text-base">
+                {{ '{:,.2f}'.format(row.best_selling_price) if row.best_selling_price else '—' }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full">
+                {{ row.bank_with_best_selling_price | replace('_', ' ') | title if row.bank_with_best_selling_price else '—' }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-6 py-3 bg-slate-50/50 border-t border-slate-100">
+      <p class="text-xs text-slate-400">
+        Data is pulled from the latest available records across all 11 tracked banks. Rates are in TZS.
+      </p>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="bg-white border border-dashed border-slate-200 rounded-2xl py-16 text-center">
+    <p class="font-semibold text-slate-600">No data available</p>
+    <p class="text-sm text-slate-400 mt-1">Ensure the API server is running and bank data has been scraped.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

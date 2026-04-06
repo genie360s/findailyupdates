@@ -1,192 +1,238 @@
-#dashboard blue print
+"""Dashboard blueprint — all authenticated financial instrument views."""
 import os
-from flask import (
-    Blueprint, flash, g, redirect, render_template, url_for, request
-)
 import requests
-from werkzeug.exceptions import abort
+from flask import Blueprint, flash, g, redirect, render_template, url_for, request
+from requests.exceptions import Timeout, RequestException
 from flaskr.auth import login_required
-from flaskr.db import get_db
-from requests.exceptions import Timeout
-
 from dotenv import load_dotenv
 
 load_dotenv()
 
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
-@bp.route('/dashboard', methods=('GET', 'POST'))
+
+BASE_API_URL = os.getenv("BASE_API_URL", "http://127.0.0.1:5000/api/v1/")
+
+BANK_OPTIONS = [
+    ("amana_bank",                  "Amana Bank"),
+    ("azania_bank",                 "Azania Bank"),
+    ("baroda_bank",                 "Bank of Baroda"),
+    ("bank_of_india",               "Bank of India (BOI)"),
+    ("bank_of_tanzania",            "Bank of Tanzania (BOT)"),
+    ("dasheng_bank",                "Dasheng Bank"),
+    ("tanzania_commercial_bank",    "Tanzania Commercial Bank (TCB)"),
+    ("dcb_bank",                    "DCB Commercial Bank"),
+    ("habib_africa_bank",           "Habib African Bank"),
+    ("mkombozi_bank",               "Mkombozi Bank"),
+    ("national_microfinance_bank",  "National Microfinance Bank (NMB)"),
+]
+
+FUND_OPTIONS = [
+    ("uttamis_unit_prices", "UTTAMIS Fund"),
+    ("faida_fund",          "Faida Fund"),
+]
+
+BOND_OPTIONS = [
+    ("government_bonds", "Government Bonds"),
+    ("corporate_bonds",  "Corporate Bonds"),
+]
+
+STOCK_OPTIONS = [
+    ("dse", "Dar es Salaam Stock Exchange (DSE)"),
+]
+
+
+def fetch_api_data(url: str, timeout: int = 10):
+    """Fetch JSON from a URL. Returns (data, error_message)."""
+    try:
+        response = requests.get(url, timeout=timeout, verify=False)
+        if response.status_code == 200:
+            return response.json(), None
+        return None, f"API returned status {response.status_code}."
+    except Timeout:
+        return None, "Request timed out — please try again."
+    except RequestException as exc:
+        return None, f"Could not reach the API server: {exc}"
+
+
+# ---------------------------------------------------------------------------
+# Main overview / daily summary
+# ---------------------------------------------------------------------------
+
+@bp.route('/')
+@bp.route('/overview')
 @login_required
-def dashboard():
-    # dashboard logic goes in here
-    if request.method == 'POST':
-        bank_name = request.form['bank_name']
-        print(bank_name)
-        error = None
+def overview():
+    """Daily market summary — landing page for authenticated users."""
+    best_rates, forex_error = None, None
+    best_rates_url = os.getenv("BEST_BANKS_FOREX_RATES_TZ_API_URL")
+    if best_rates_url:
+        best_rates, forex_error = fetch_api_data(best_rates_url)
 
-        if not bank_name:
-            error = 'Bank name is required.'
-        base_api_url = os.getenv("BASE_API_URL")
-        bank_api_url = f"{base_api_url}{bank_name}/latest_date"
-        if  error is None:
-            try :
-                response = requests.get(bank_api_url)
-                if response.status_code == 200:
-                    bank_forex_data = response.json()
-                    print(bank_forex_data)
-                    return render_template('dashboard/dashboard.html', bank_forex_data=bank_forex_data)
-            except Timeout:
-                # Handle timeout error
-                return render_template('error.html', message="API request timed out. Please try again later.")
-            except Exception as e:
-                # Handle other exceptions
-                return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-            else:
-                # Handle other errors
-                return render_template('error.html', message="Failed to fetch data from the API")
-            
-        flash(error)
-
-    return render_template('dashboard/dashboard.html')
+    return render_template(
+        'dashboard/overview.html',
+        best_rates=best_rates,
+        forex_error=forex_error,
+        bank_options=BANK_OPTIONS,
+        fund_options=FUND_OPTIONS,
+        bond_options=BOND_OPTIONS,
+        stock_options=STOCK_OPTIONS,
+    )
 
 
-@bp.route('/mutual_funds', methods=('GET', 'POST'))
+# ---------------------------------------------------------------------------
+# Forex rates
+# ---------------------------------------------------------------------------
+
+@bp.route('/forex', methods=['GET', 'POST'])
 @login_required
-def mutual_funds():
-    # mutual funds logic goes in here
+def forex():
+    bank_forex_data, selected_bank, error = None, None, None
+
     if request.method == 'POST':
-        fund_name = request.form['fund_name']
-        print(fund_name)
-        error = None
+        selected_bank = request.form.get('bank_name', '').strip()
+        if not selected_bank:
+            error = 'Please select a bank.'
+        else:
+            url = f"{BASE_API_URL}{selected_bank}/latest_date"
+            bank_forex_data, error = fetch_api_data(url)
 
-        if not fund_name:
-            error = 'Fund name is required.'
+    return render_template(
+        'dashboard/forex.html',
+        bank_forex_data=bank_forex_data,
+        selected_bank=selected_bank,
+        bank_options=BANK_OPTIONS,
+        error=error,
+    )
 
-        base_api_url = os.getenv("BASE_API_URL")
-        fund_api_url = f"{base_api_url}{fund_name}/latest_date"
 
-        if  error is None:
-            try :
-                response = requests.get(fund_api_url)
-                if response.status_code == 200:
-                    fund_data = response.json()
-                    print(fund_data)
-                    return render_template('dashboard/mutual_funds.html', fund_data=fund_data)
-            except Timeout:
-                # Handle timeout error
-                return render_template('error.html', message="API request timed out. Please try again later.")
-            except Exception as e:
-                # Handle other exceptions
-                return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-            else:
-                # Handle other errors
-                return render_template('error.html', message="Failed to fetch data from the API")
-        
-        flash(error)
-    return render_template('dashboard/mutual_funds.html')
+# ---------------------------------------------------------------------------
+# Stock markets
+# ---------------------------------------------------------------------------
 
-@bp.route('/stock_markets', methods=('GET', 'POST'))
+@bp.route('/stocks', methods=['GET', 'POST'])
 @login_required
-def stock_markets():
-    #checks which stock market is selected
+def stocks():
+    stock_data, error = None, None
 
     if request.method == 'POST':
-        stock_market = request.form['stock_market']
-        error = None
+        market = request.form.get('stock_market', '').strip()
+        if not market:
+            error = 'Please select a market.'
+        elif market == 'dse':
+            dse_url = os.getenv("DSE_STOCK_PRICES_API_URL", "")
+            raw, error = fetch_api_data(dse_url)
+            if raw:
+                stock_data = raw.get('data', raw)
 
-        if not stock_market:
-            error = 'Stock market is required.'
+    return render_template(
+        'dashboard/stocks.html',
+        stock_data=stock_data,
+        stock_options=STOCK_OPTIONS,
+        error=error,
+    )
 
-        if  stock_market == "dse":
-           
-            dse_api = os.getenv("DSE_STOCK_PRICES_API_URL")
-            
 
-            try :
-                response = requests.get(dse_api,  verify=False)
-                print(response.json)
-                if response.status_code == 200:
-                    stock_data = response.json()
-                    stock_data = stock_data['data']
-                    print(stock_data)
-                    print("DSE")
-                    return render_template('dashboard/stock_markets.html', stock_data=stock_data)
-          
-            except Exception as e:
-                # Handle other exceptions
-                return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-            else:
-                # Handle other errors
-                return render_template('error.html', message="Failed to fetch data from the API")
-        flash(error)
-    return render_template('dashboard/stock_markets.html')
+# ---------------------------------------------------------------------------
+# Bonds
+# ---------------------------------------------------------------------------
 
-@bp.route('/bonds', methods=('GET', 'POST'))
+@bp.route('/bonds', methods=['GET', 'POST'])
 @login_required
 def bonds():
-    # bond  logic goes in here
+    bond_data, selected_bond, error = None, None, None
+
     if request.method == 'POST':
-        bond_type = request.form['bond_type']
-        print(bond_type)
-        error = None
+        selected_bond = request.form.get('bond_type', '').strip()
+        if not selected_bond:
+            error = 'Please select a bond type.'
+        else:
+            url = f"{BASE_API_URL}{selected_bond}/latest_date"
+            bond_data, error = fetch_api_data(url)
 
-        if not bond_type:
-            error = 'Bond type is required.'
+    return render_template(
+        'dashboard/bonds.html',
+        bond_data=bond_data,
+        selected_bond=selected_bond,
+        bond_options=BOND_OPTIONS,
+        error=error,
+    )
 
-        base_api_url = os.getenv("BASE_API_URL")
-        bond_api_url = f"{base_api_url}{bond_type}/latest_date"
 
-        if  error is None:
-            try :
-                response = requests.get(bond_api_url)
-                if response.status_code == 200:
-                    bond_data = response.json()
-                    print(bond_data)
-                    return render_template('dashboard/bonds.html', bond_data=bond_data)
-            except Timeout:
-                # Handle timeout error
-                return render_template('error.html', message="API request timed out. Please try again later.")
-            except Exception as e:
-                # Handle other exceptions
-                return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-            else:
-                # Handle other errors
-                return render_template('error.html', message="Failed to fetch data from the API")
-        
-        flash(error)
-    return render_template('dashboard/bonds.html')
+# ---------------------------------------------------------------------------
+# Mutual funds
+# ---------------------------------------------------------------------------
 
-@bp.route('/best_banks_forex_rates_tz', methods=('GET', 'POST'))
+@bp.route('/mutual-funds', methods=['GET', 'POST'])
+@login_required
+def mutual_funds():
+    fund_data, selected_fund, error = None, None, None
+
+    if request.method == 'POST':
+        selected_fund = request.form.get('fund_name', '').strip()
+        if not selected_fund:
+            error = 'Please select a fund.'
+        else:
+            url = f"{BASE_API_URL}{selected_fund}/latest_date"
+            fund_data, error = fetch_api_data(url)
+
+    return render_template(
+        'dashboard/mutual_funds.html',
+        fund_data=fund_data,
+        selected_fund=selected_fund,
+        fund_options=FUND_OPTIONS,
+        error=error,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Best rates & summary
+# ---------------------------------------------------------------------------
+
+@bp.route('/best-rates')
+@login_required
+def best_rates():
+    url = os.getenv("BEST_BANKS_FOREX_RATES_TZ_API_URL", "")
+    data, error = fetch_api_data(url)
+    return render_template('dashboard/best_rates.html', best_banks_forex_rates=data, error=error)
+
+
+@bp.route('/rates-summary')
+@login_required
+def rates_summary():
+    url = os.getenv("BEST_BANKS_FOREX_RATES_SUMMARY_TZ_API_URL", "")
+    data, error = fetch_api_data(url)
+    return render_template('dashboard/rates_summary.html', summary_best_rates=data, error=error)
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatibility redirects for old URL patterns
+# ---------------------------------------------------------------------------
+
+@bp.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    return redirect(url_for('dashboard.forex'))
+
+
+@bp.route('/mutual_funds', methods=['GET', 'POST'])
+@login_required
+def mutual_funds_legacy():
+    return redirect(url_for('dashboard.mutual_funds'))
+
+
+@bp.route('/stock_markets', methods=['GET', 'POST'])
+@login_required
+def stock_markets():
+    return redirect(url_for('dashboard.stocks'))
+
+
+@bp.route('/best_banks_forex_rates_tz')
 @login_required
 def best_banks_forex_rates_tz():
-    try:
-        response = requests.get(os.getenv("BEST_BANKS_FOREX_RATES_TZ_API_URL"), timeout=10)
-        if response.status_code == 200:
-            best_banks_forex_rates = response.json()
-            print(best_banks_forex_rates)
-            return render_template('dashboard/best_banks_forex_rates.html', best_banks_forex_rates=best_banks_forex_rates)
-        else:
-            return render_template('error.html', message=f"Error fetching data: {response.status_code}")
-    except Timeout:
-        return render_template('error.html', message="API request timed out. Please try again later.")
-    except Exception as e:
-        return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-    
-    return render_template('dashboard/best_banks_forex_rates.html')
+    return redirect(url_for('dashboard.best_rates'))
 
-@bp.route('/best_banks_forex_rates_summary', methods=('GET', 'POST'))
+
+@bp.route('/best_banks_forex_rates_summary')
 @login_required
 def banks_summary_forex_rates_tz():
-    try:
-        response = requests.get(os.getenv("BEST_BANKS_FOREX_RATES_SUMMARY_TZ_API_URL"), timeout=10)
-        if response.status_code == 200:
-            summary_best_rates = response.json()
-            print(summary_best_rates)
-            return render_template('dashboard/forex_rates_summary.html', summary_best_rates=summary_best_rates)
-        else:
-            return render_template('error.html', message=f"Error fetching data: {response.status_code}")
-    except Timeout:
-        return render_template('error.html', message="API request timed out. Please try again later.")
-    except Exception as e:
-        return render_template('error.html', message=f"Failed to fetch data from the API: {str(e)}")
-    
-    return render_template('dashboard/forex_rates_summary.html')
+    return redirect(url_for('dashboard.rates_summary'))

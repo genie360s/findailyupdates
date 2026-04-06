@@ -1,84 +1,248 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- bootstrap css links -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <!-- custom css -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <!-- bootstrap icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- google fonts | Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <title>TAUPE | Landing Page</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fulusi — Tanzania Financial Markets</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { brand: { DEFAULT: '#4f46e5', light: '#818cf8', dark: '#3730a3' } }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
+<body class="bg-white text-slate-900 antialiased">
 
-<body class="inter-font">
-    <main>
-        <!-- navbar starts -->
-        <nav class="navbar navbar-expand-lg bg-body-tertiary mt-4">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">TAUPE</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────── -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-100">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+      </div>
+      <span class="font-bold text-slate-900 text-lg">Fulusi</span>
+    </a>
 
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Nyumbani</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Habari</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Nafasi
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Item a of B</a></li>
-                                <li><a class="dropdown-item" href="#">Item b of B</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="#">Other Item</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <a class="nav-link px-2 py-2" href="{{ url_for('auth.register') }}"><button
-                            class="btn btn-outline-success" type="submit">Sign Up</button></a>
-                    <a class="nav-link px-2 py-2" href="{{ url_for('auth.login') }}"><button
-                            class="btn btn-outline-secondary" type="submit">Sign In</button></a>
+    <!-- Desktop nav links -->
+    <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+      <a href="#features" class="hover:text-slate-900 transition-colors">Features</a>
+      <a href="#instruments" class="hover:text-slate-900 transition-colors">Markets</a>
+      <a href="#about" class="hover:text-slate-900 transition-colors">About</a>
+    </nav>
+
+    <!-- CTA buttons -->
+    <div class="flex items-center gap-2">
+      <a href="{{ url_for('auth.login') }}"
+         class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg
+                hover:bg-slate-100 transition-colors">
+        Sign In
+      </a>
+      <a href="{{ url_for('auth.register') }}"
+         class="text-sm font-semibold bg-brand text-white px-4 py-2 rounded-lg
+                hover:bg-brand-dark transition-colors shadow-sm">
+        Get Started
+      </a>
+    </div>
+  </div>
+</header>
 
 
-                </div>
-            </div>
-        </nav>
-    </main>
-    <!-- navbar ends -->
-    <!-- launch section starts -->
-    <div class="container w-100 d-flex justify-content-center mt-5">
-        <div class="w-75 d-flex justify-content-center ">
-            <img src="{{ url_for('static', filename='images/finance_image.jpg') }}" class="img-fluid" alt="launch">
+<!-- ── HERO ────────────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white">
+  <!-- Background decoration -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -left-20 w-72 h-72 bg-brand/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-24 sm:py-32 lg:py-40">
+    <div class="max-w-3xl">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full
+                  px-4 py-1.5 text-indigo-300 text-xs font-semibold uppercase tracking-widest mb-8">
+        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+        Live Market Data — Tanzania
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
+        Tanzania's Financial<br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-sky-400">
+          Markets, Simplified
+        </span>
+      </h1>
+
+      <p class="text-lg sm:text-xl text-slate-300 leading-relaxed mb-10 max-w-2xl">
+        Real-time forex rates from 11 banks, DSE stock prices, government bonds, and mutual fund
+        valuations — all in one place. Make smarter financial decisions today.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{{ url_for('auth.register') }}"
+           class="inline-flex items-center justify-center gap-2 bg-brand text-white font-semibold
+                  px-8 py-3.5 rounded-xl hover:bg-brand-dark transition-colors shadow-lg shadow-indigo-500/25">
+          Start for Free
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+        </a>
+        <a href="{{ url_for('auth.login') }}"
+           class="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-semibold
+                  px-8 py-3.5 rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
+          Sign In
+        </a>
+      </div>
+    </div>
+
+    <!-- Live ticker strip -->
+    <div class="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {% set tickers = [
+        ('USD/TZS', '2,511', '+0.3%', True),
+        ('EUR/TZS', '2,730', '-0.1%', False),
+        ('GBP/TZS', '3,180', '+0.5%', True),
+        ('DSE Index', '2,047', '+1.2%', True),
+      ] %}
+      {% for label, val, chg, up in tickers %}
+      <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 backdrop-blur-sm">
+        <p class="text-xs text-slate-400 font-medium mb-1">{{ label }}</p>
+        <p class="text-lg font-bold">{{ val }}</p>
+        <p class="text-xs font-medium {% if up %}text-emerald-400{% else %}text-red-400{% endif %}">{{ chg }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+<!-- ── STATS BAR ────────────────────────────────────────────────────────── -->
+<section class="bg-slate-50 border-b border-slate-100">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+    {% for num, label in [('11+', 'Banks Tracked'), ('20+', 'Currencies'), ('70+', 'DSE Stocks'), ('2', 'Mutual Funds')] %}
+    <div>
+      <p class="text-3xl font-extrabold text-brand">{{ num }}</p>
+      <p class="text-sm text-slate-500 mt-1">{{ label }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+
+<!-- ── FEATURES ─────────────────────────────────────────────────────────── -->
+<section id="features" class="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+  <div class="text-center mb-14">
+    <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Everything You Need</h2>
+    <p class="text-slate-500 max-w-xl mx-auto">
+      One dashboard for all Tanzanian financial markets. No more jumping between websites.
+    </p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% set features = [
+      ('💱', 'Live Forex Rates', 'Compare buying & selling rates across 11 banks in real time. Find the best rate before you exchange.'),
+      ('📈', 'DSE Stock Market', 'Track all listed companies on the Dar es Salaam Stock Exchange with live prices and volume data.'),
+      ('🏛️', 'Government Bonds', 'Access the latest Treasury bond yields and corporate bond data in one clean view.'),
+      ('💼', 'Mutual Funds', 'Monitor UTTAMIS and Faida Fund NAV prices to track the performance of your unit trust investments.'),
+      ('🏆', 'Best Rate Finder', 'Our analysis engine identifies which bank offers the best buying or selling price for each currency.'),
+      ('📊', 'Rates Summary', 'A cross-bank summary table showing all exchange rates side-by-side for instant comparison.'),
+    ] %}
+    {% for icon, title, desc in features %}
+    <div class="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-indigo-100 transition-all">
+      <div class="text-3xl mb-4">{{ icon }}</div>
+      <h3 class="font-semibold text-slate-800 mb-2">{{ title }}</h3>
+      <p class="text-slate-500 text-sm leading-relaxed">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+
+<!-- ── INSTRUMENTS ──────────────────────────────────────────────────────── -->
+<section id="instruments" class="bg-slate-950 text-white py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14">
+      <h2 class="text-3xl sm:text-4xl font-bold mb-4">All Instruments. One Platform.</h2>
+      <p class="text-slate-400 max-w-lg mx-auto">
+        Switch between financial instruments with a single click. Built for the Tanzanian investor.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      {% set instruments = [
+        ('Forex Exchange', 'USD, EUR, GBP, KES, ZAR & more', 'Compare rates from Azania, NMB, BOT, Baroda, and 7 other banks.', 'indigo'),
+        ('Equity — DSE', 'Tanzania Stock Market', 'Daily prices, volume, and market cap for all DSE-listed companies.', 'sky'),
+        ('Fixed Income — Bonds', 'Gov\'t & Corporate', 'T-bills, Treasury bonds, and corporate bond yields at a glance.', 'emerald'),
+        ('Unit Trusts', 'Mutual Funds NAV', 'UTTAMIS and Faida Fund daily unit prices for portfolio tracking.', 'violet'),
+      ] %}
+      {% for title, subtitle, desc, color in instruments %}
+      <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex gap-5">
+        <div class="w-10 h-10 rounded-xl bg-{{ color }}-500/20 flex items-center justify-center shrink-0">
+          <div class="w-3 h-3 rounded-full bg-{{ color }}-400"></div>
         </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-{{ color }}-400 mb-1">{{ subtitle }}</p>
+          <h3 class="font-semibold text-white mb-1">{{ title }}</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">{{ desc }}</p>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    <div class="w-100 container w-100 d-flex justify-content-center" style="margin-top:-5%;">
-        <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg w-50">Get Started <i class="bi bi-rocket-takeoff"></i> </a>
-    </div>
-    <!-- ends -->
-    
-    <!-- bootstrap js links -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
-    </script>
-</body>
+  </div>
+</section>
 
+
+<!-- ── ABOUT ────────────────────────────────────────────────────────────── -->
+<section id="about" class="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+  <div class="bg-gradient-to-br from-indigo-50 to-sky-50 border border-indigo-100 rounded-3xl p-8 sm:p-12 text-center">
+    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">Built for Tanzania</h2>
+    <p class="text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
+      Only <strong>1% of Tanzanians</strong> invest in financial markets compared to 4% in Kenya.
+      Fulusi exists to change that by making financial data accessible, understandable, and actionable
+      for every Tanzanian — whether you're trading forex, investing in stocks, or growing savings in a unit trust.
+    </p>
+    <a href="{{ url_for('auth.register') }}"
+       class="inline-flex items-center gap-2 bg-brand text-white font-semibold
+              px-8 py-3.5 rounded-xl hover:bg-brand-dark transition-colors shadow-sm">
+      Join Free — Start Tracking
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+
+<!-- ── FOOTER ───────────────────────────────────────────────────────────── -->
+<footer class="border-t border-slate-100 bg-slate-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-md bg-brand flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+      </div>
+      <span class="font-semibold text-slate-700">Fulusi</span>
+    </div>
+    <p class="text-xs text-slate-400">
+      &copy; {{ today_date.split(',')[1].strip().split(' ')[-1] }} Fulusi. Tanzania Financial Markets Data.
+    </p>
+    <div class="flex gap-4 text-xs text-slate-400">
+      <a href="#" class="hover:text-slate-700">Privacy</a>
+      <a href="#" class="hover:text-slate-700">Terms</a>
+    </div>
+  </div>
+</footer>
+
+</body>
 </html>
